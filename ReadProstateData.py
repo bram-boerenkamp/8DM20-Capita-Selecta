@@ -11,7 +11,8 @@ DATA_PATH = r'C:\Users\20192236\Documents\MY1\8DM20_CSinMIA\TrainingData'
 ELASTIX_PATH = os.path.join(FOLDER_PATH, 'elastix.exe')
 TRANSFORMIX_PATH = os.path.join(FOLDER_PATH, 'transformix.exe')
 
-#el = elastix.ElastixInterface(elastix_path=ELASTIX_PATH)
+#%%
+
 
 patients = ['p102', 'p107']
 
