@@ -16,3 +16,4 @@ a coding repository for 8DM20 - Capita Selecta in medical image analysis of team
 * Make sure to always update your own directory with this git before you start coding.
 * When writing new files make sure to add them to this README this makes sure everyone has a understanding of what happens in that file.
 * When writing new files also make sure that you're defining global path variables at the top of your file, this ensures that everyone can use your code by simply changing these variables. Also do **not** use full path further down in the code this would make the global variable redundant.
+* When committing changes always take the time to think about the message that you are adding, having clear messages can be very inportant for the version control if something goes south.
