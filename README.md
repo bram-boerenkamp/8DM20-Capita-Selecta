@@ -1,6 +1,6 @@
 # 8DM20-Capita-Selecta
 
-a coding repository for 8DM20 - Capita Selecta in mediacal image analysis of team 1 of 2024.
+a coding repository for 8DM20 - Capita Selecta in medical image analysis of team 1 of 2024.
 
 ## Contents
 
