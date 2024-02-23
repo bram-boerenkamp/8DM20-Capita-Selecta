@@ -14,7 +14,7 @@ TRANSFORMIX_PATH = os.path.join(FOLDER_PATH, 'transformix.exe')
 #%%
 
 
-patients = ['p102', 'p107']
+patients = ['p117', 'p125']
 
 fig, ax = plt.subplots(1, 4, figsize=(20, 5))
 for i, item in enumerate(patients):
@@ -24,5 +24,6 @@ for i, item in enumerate(patients):
     image_prostaat = sitk.ReadImage(os.path.join(DATA_PATH, item, 'prostaat.mhd'))
     array_prostaat = sitk.GetArrayFromImage(image_prostaat)
 
-    ax[i].imshow(array_mr[50,:,:], cmap='gray')
-    ax[i+1].imshow(array_prostaat[50,:,:], cmap='gray')
+    depth = 50
+    ax[i].imshow(array_mr[85,:,:], cmap='gray')
+    ax[i+1].imshow(array_prostaat[85,:,:], cmap='gray')
