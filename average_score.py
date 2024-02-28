@@ -114,25 +114,3 @@ for fixed_mask in os.listdir(output_dir_masks):
 
 
 
-
-"""
-el = elastix.ElastixInterface(elastix_path=ELASTIX_PATH)
-
-fixed_image_path = os.path.join(CHEST_PATH, 'fixed_image.mhd')
-moving_image_path = os.path.join(CHEST_PATH, 'moving_image.mhd')
-parameter_file_path = os.path.join(CHEST_PATH, 'parameterswithpenalty.txt')
-
-fixed_image = sitk.ReadImage(fixed_image_path)
-moving_image = sitk.ReadImage(moving_image_path)
-fixed_image = sitk.GetArrayFromImage(fixed_image)
-moving_image = sitk.GetArrayFromImage(moving_image)
-
-el.register(
-    fixed_image=fixed_image_path,
-    moving_image=moving_image_path,
-    parameters=[parameter_file_path],
-    output_dir=os.path.join(FOLDER_PATH, 'results'))
-"""
-
-
-
