@@ -19,7 +19,7 @@ TRANSFORMIX_PATH = os.path.join(FOLDER_PATH, 'transformix.exe')
 el = elastix.ElastixInterface(elastix_path=ELASTIX_PATH)
 #global variables
 patient_list = ['p102', 'p107', 'p108', 'p109', 'p115', 'p116', 'p117', 'p119', 'p120','p125', 'p127', 'p128', 'p129', 'p133', 'p135']
-parameters_file_path = os.path.join(CODE_PATH, 'Par0001rigid.txt')
+parameters_file_path = os.path.join(CODE_PATH, 'Par0001affine.txt')
 #%% create a result dir and removes all old results!
 
 #%%

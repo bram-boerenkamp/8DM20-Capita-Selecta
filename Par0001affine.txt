@@ -20,13 +20,13 @@
 (ErodeMask "false")
 
 (AutomaticScalesEstimation "true")
-(AutomaticTransformInitialization "false")
+(AutomaticTransformInitialization "true")
 
 (NumberOfResolutions 4)
 
 (HowToCombineTransforms "Compose")
 
-(WriteResultImage "false")
+(WriteResultImage "true")
 (WriteResultImageAfterEachResolution "false") 
 (WriteTransformParametersEachIteration "false")
 (WriteTransformParametersEachResolution "true")

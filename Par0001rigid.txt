@@ -20,7 +20,7 @@
 (ErodeMask "false")
 
 (AutomaticScalesEstimation "true")
-(AutomaticTransformInitialization "false")
+(AutomaticTransformInitialization "true")
 
 (NumberOfResolutions 4)
 
