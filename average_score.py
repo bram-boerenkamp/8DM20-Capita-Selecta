@@ -21,7 +21,7 @@ el = elastix.ElastixInterface(elastix_path=ELASTIX_PATH)
 #global variables
 patient_list = ['p102', 'p107', 'p108', 'p109', 'p115', 'p116', 'p117', 'p119', 'p120','p125', 'p127', 'p128', 'p129', 'p133', 'p135']
 number_of_patients = 5 # for earlier stopping of the code
-parameters_file_path = os.path.join(CODE_PATH, 'Par0001affine.txt')
+parameters_file_path = os.path.join(CODE_PATH,'parameter_files',  'Par0001affine.txt')
 #%% create a result dir and removes all old results!
 
 #%% registration and transformation
@@ -33,6 +33,7 @@ pathlib.Path.mkdir(output_dir, exist_ok=False)
 output_dir_masks = os.path.join(output_dir, 'masks')
 pathlib.Path.mkdir(output_dir_masks, exist_ok=False) # make a dir for the masks
 
+#%%
 #loop over all patients and register their images
 for index_fixed, fixed_patient in enumerate(patient_list):
     for index_moving, moving_patient in enumerate(patient_list):
@@ -66,22 +67,18 @@ for index_fixed, fixed_patient in enumerate(patient_list):
                     shutil.rmtree(output_dir_mask)
                 output_dir_mask_path = pathlib.Path(output_dir_mask)
                 pathlib.Path.mkdir(output_dir_mask_path, parents=True, exist_ok=False)
-                tr.transform_image(moving_mask_path, 
-                                output_dir=output_dir_mask)
-        #else:
-        #    continue
+                tr.transform_image(moving_mask_path, output_dir=output_dir_mask)
 #%% calculating average masks per patient
-average_mask = numpy.empty((86, 333, 271), dtype='int16')
+                
 for fixed_mask in os.listdir(output_dir_masks):
+    # bring all moved masks values to one mask
+    average_mask = numpy.empty((86, 333, 271), dtype='int16') #initialization array
     for i, moving_mask in enumerate(os.listdir(os.path.join(output_dir_masks, fixed_mask))):
         moving_mask_imagefile = os.path.join(output_dir_masks, fixed_mask, moving_mask, 'result.mhd')
         moving_mask_image = sitk.ReadImage(moving_mask_imagefile)
         pixel_values = sitk.GetArrayFromImage(moving_mask_image)
         average_mask += pixel_values
-    #average_mask = average_mask/i
     new_mask = sitk.GetImageFromArray(average_mask)
-    plt.imshow(average_mask[70,:,:], cmap='grey')
-    plt.show()
     
     #make mask binary again
     filter = sitk.MinimumMaximumImageFilter()
@@ -95,11 +92,25 @@ for fixed_mask in os.listdir(output_dir_masks):
     binary_filter.SetOutsideValue(1)
 
     binary_mask = binary_filter.Execute(new_mask)
-    binary_mask_array = sitk.GetArrayFromImage(binary_mask)
-    plt.imshow(binary_mask_array[70,:,:], cmap='grey')
+    binary_mask_array = sitk.GetArrayFromImage(binary_mask) 
+
+    #show some images
+    fixed_mask_dir = os.path.join(DATA_PATH, fixed_mask, 'prostaat.mhd')
+    fixed_mask_image = sitk.ReadImage(fixed_mask_dir)
+    fixed_mask_array = sitk.GetArrayFromImage(fixed_mask_image)
+
+    fig, ax = plt.subplots(1, 3, figsize=(20, 5))
+    ax[0].imshow(average_mask[50,:,:], cmap='gray')
+    ax[0].set_title('all tranformed masks')
+    ax[1].imshow(binary_mask_array[50,:,:], cmap='gray')
+    ax[1].set_title('binary mask of all transformed masks')
+    ax[2].imshow(fixed_mask_array[50,:,:], cmap='gray')
+    ax[2].set_title('fixed mask')
     plt.show()
-#%% calculate dice score
-    
+   
+#%% calculate dice score per patient and average dice score
+
+
 
 
 
