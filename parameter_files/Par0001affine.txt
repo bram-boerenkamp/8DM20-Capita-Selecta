@@ -56,7 +56,7 @@
 (BSplineInterpolationOrder 1 )
 
 //Order of B-Spline interpolation used for applying the final deformation:
-(FinalBSplineInterpolationOrder 3)
+(FinalBSplineInterpolationOrder 0)
 
 //Default pixel value for pixels that come from outside the picture:
 (DefaultPixelValue 0)
