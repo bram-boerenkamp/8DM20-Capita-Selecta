@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar  1 15:01:57 2024
-
-@author: Paola
-"""
 #all imports
 import elastix
 import imageio
@@ -20,7 +14,7 @@ from sklearn import preprocessing
 FOLDER_PATH = r'C:\Users\Paola\Downloads\myfolder'
 DATA_PATH = r'C:\Users\Paola\Downloads\TrainingData\TrainingData'
 #CODE_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Hausdorff and dice score'
-TRANSFORMED_MASKS_PATH = r'C:\Users\Paola\Downloads\TrainingData\TrainingData\results_average_score\masks_Corr_2'
+TRANSFORMED_MASKS_PATH = r'C:\Users\Paola\Downloads\TrainingData\TrainingData\results_average_score\masks_Corr_1'
 
 patient_list = ['p102', 'p107', 'p108', 'p109', 'p115', 'p116', 'p117', 'p119', 'p120','p125', 'p127', 'p128', 'p129', 'p133', 'p135']
 #Select for how many patients you want to compute the similarity indices
@@ -122,10 +116,20 @@ for index_fixed, fixed_patient in enumerate(patient_list):
         for i in range(len(normalized_hausdorff)):
             average_weights_dice_and_hd.append((normalized_hausdorff[i]+normalized_dice[i])/2)
         
-print(average_weights_dice_and_hd)
-print(np.mean(average_weights_dice_and_hd))
+# Printing the average among each patient
+print("Average DICE and HD weights: ", average_weights_dice_and_hd)
+# Printing the mean of the average among each patient
+print("Mean of the average DICE and HD weights: ", np.mean(average_weights_dice_and_hd))
 
-mean_values = [value for value in dice_scores.values()]
-mean_value = np.mean(mean_values)
-print(mean_values)
-print(mean_value)
+dice_value = np.mean(normalized_dice)
+# Print the average DICE score among each patient
+print("DICE scores: ", normalized_dice)
+# Printing the mean of the average DICE score among each patient
+print("Mean of the DICE scores: ", dice_value)
+
+
+hd_value = np.mean(normalized_hausdorff)
+# Print the average DICE score among each patient
+print("HD scores: ", normalized_hausdorff)
+# Printing the mean of the average DICE score among each patient
+print("Mean of the HD scores: ", hd_value)
