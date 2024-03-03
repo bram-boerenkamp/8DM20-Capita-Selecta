@@ -1,0 +1,131 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Mar  1 15:01:57 2024
+
+@author: Paola
+"""
+#all imports
+import elastix
+import imageio
+import os
+import matplotlib.pyplot as plt
+import numpy as np
+import SimpleITK as sitk 
+import pathlib
+import shutil
+import scipy
+from sklearn import preprocessing
+
+#global paths
+FOLDER_PATH = r'C:\Users\Paola\Downloads\myfolder'
+DATA_PATH = r'C:\Users\Paola\Downloads\TrainingData\TrainingData'
+#CODE_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Hausdorff and dice score'
+TRANSFORMED_MASKS_PATH = r'C:\Users\Paola\Downloads\TrainingData\TrainingData\results_average_score\masks_Corr_2'
+
+patient_list = ['p102', 'p107', 'p108', 'p109', 'p115', 'p116', 'p117', 'p119', 'p120','p125', 'p127', 'p128', 'p129', 'p133', 'p135']
+#Select for how many patients you want to compute the similarity indices
+number_of_patients = 1
+
+dice_scores = {}
+hausdorff_distances = {}
+def dice(im1, im2, empty_score=1.0):
+    """
+    Computes the Dice coefficient, a measure of set similarity.
+    Parameters
+    ----------
+    im1 : array-like, bool
+        Any array of arbitrary size. If not boolean, will be converted.
+    im2 : array-like, bool
+        Any other array of identical size. If not boolean, will be converted.
+    Returns
+    -------
+    dice : float
+        Dice coefficient as a float on range [0,1].
+        Maximum similarity = 1
+        No similarity = 0
+        Both are empty (sum eq to zero) = empty_score
+        
+    Notes
+    -----
+    The order of inputs for `dice` is irrelevant. The result will be
+    identical if `im1` and `im2` are switched.
+    """
+    im1 = np.asarray(im1).astype(bool)
+    im2 = np.asarray(im2).astype(bool)
+
+    if im1.shape != im2.shape:
+        raise ValueError("Shape mismatch: im1 and im2 must have the same shape.")
+
+    im_sum = im1.sum() + im2.sum()
+    if im_sum == 0:
+        return empty_score
+
+    # Compute Dice coefficient
+    intersection = np.logical_and(im1, im2)
+
+    return 2. * intersection.sum() / im_sum
+
+#Loop through the patients
+for index_fixed, fixed_patient in enumerate(patient_list):
+    if number_of_patients > index_fixed:
+        #Get the fixed initial mask 
+        fixed_mask_path = os.path.join(DATA_PATH, fixed_patient, 'prostaat.mhd')
+        fixed_mask = sitk.ReadImage(fixed_mask_path)
+        fixed_mask = sitk.GetArrayFromImage(fixed_mask)
+        
+        #Specify the path of the transformed masks results
+        subfolder_transformed_masks = [patient for patient in patient_list if patient != fixed_patient]
+        #Loop through the transformed masks folder
+        for index_transformed, transformed_patient in enumerate(subfolder_transformed_masks):
+            transformed_mask_path = os.path.join(TRANSFORMED_MASKS_PATH,fixed_patient,transformed_patient,'result.tiff')
+            transformed_mask = sitk.ReadImage(transformed_mask_path)
+            transformed_mask = sitk.GetArrayFromImage(transformed_mask)
+            
+            #Calculate the dice score
+            dice_score = dice(fixed_mask, transformed_mask)
+            pair_key = (fixed_patient, transformed_patient)
+            dice_scores[pair_key] = dice_score
+
+            # Directed Hausdorff distance, first value is the HD, second and third value are the point that corresponds with the HD
+            #The HD only supports 2D matrices and fixed_points and transformed_points are 3D. 
+            distance = []
+            for dimension in range(fixed_mask.shape[0]):
+                fixed_points = np.transpose((fixed_mask[dimension,:,:]))
+                transformed_points = np.transpose((transformed_mask[dimension,:,:]))
+                hausdorff_distance = scipy.spatial.distance.directed_hausdorff(fixed_points, transformed_points)
+                distance.append(hausdorff_distance[0])
+            
+                
+            # Creating a dictionary with the average value of the HD in all the slices.
+            # As the Hausdorff distance does not work with 3D arrays.
+            hausdorff_distances[pair_key] = np.mean(distance)
+        
+        # I'll remove the normalization of the DICE score because it is just a measurement of the
+        # degree of overlap between both segmentations.
+        # Get the weights for each mask
+        normalized_weights_hausdorff = []
+        normalized_weights_dice = []
+        HD = np.reshape(list(hausdorff_distances.values()), (7,2))
+        
+        normalized_hausdorff = preprocessing.normalize(list(HD)).flatten()
+        
+        #Because a high hausdorff indicates a bad mask, convert this metric by subtracting by 1
+        normalized_hausdorff = 1-normalized_hausdorff
+        
+        normalized_hausdorff = [elem for elem in normalized_hausdorff]
+        
+        #normalized_dice = preprocessing.normalize([list(dice_scores.values())])
+        normalized_dice = list(dice_scores.values())
+        normalized_dice = [elem for elem in normalized_dice]
+        
+        average_weights_dice_and_hd = []
+        for i in range(len(normalized_hausdorff)):
+            average_weights_dice_and_hd.append((normalized_hausdorff[i]+normalized_dice[i])/2)
+        
+print(average_weights_dice_and_hd)
+print(np.mean(average_weights_dice_and_hd))
+
+mean_values = [value for value in dice_scores.values()]
+mean_value = np.mean(mean_values)
+print(mean_values)
+print(mean_value)
