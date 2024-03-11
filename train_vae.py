@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Mar  4 11:43:14 2024
-
-@author: Paola
-"""
-
 import random
 from pathlib import Path
 
@@ -14,9 +7,6 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import make_grid
 from tqdm import tqdm
-import torch
-import torch.optim as optim
-import torch.optim.lr_scheduler as lr_scheduler
 
 import utils
 import vae
@@ -32,12 +22,9 @@ elif torch.backends.mps.is_available():
 else:
     device = torch.device("cpu")
 
-#%%
 # directorys with data and to store training checkpoints and logs
-#DATA_DIR = Path.cwd().patent / "TrainingData"
-DATA_DIR = Path(r"C:\Users\Paola\Downloads\TrainingData\TrainingData")    
-#CHECKPOINTS_DIR = Path.cwd() / "vae_model_weights"
-CHECKPOINTS_DIR = Path(r"C:\Users\Paola\Downloads\GenerativeNetworks\vae_model_weights")
+DATA_DIR = Path.cwd().parent / "TrainingData"
+CHECKPOINTS_DIR = Path.cwd() / "vae_model_weights"
 CHECKPOINTS_DIR.mkdir(parents=True, exist_ok=True)
 TENSORBOARD_LOGDIR = "vae_runs"
 
@@ -59,9 +46,12 @@ def lr_lambda(the_epoch):
     return (
         1.0
         if the_epoch < DECAY_LR_AFTER
-        else 1 - float(the_epoch - DECAY_LR_AFTER) / (N_EPOCHS - DECAY_LR_AFTER))
+        else 1 - float(the_epoch - DECAY_LR_AFTER) / (N_EPOCHS - DECAY_LR_AFTER)
+    )
 
-# Find patient folders in training directory excluding hidden folders (start with .)
+
+# find patient folders in training directory
+# excluding hidden folders (start with .)
 patients = [
     path
     for path in DATA_DIR.glob("*")
@@ -96,64 +86,20 @@ valid_dataloader = DataLoader(
 )
 
 # initialise model, optimiser
-vae_model = vae.VAE().to(device)        #u_net.UNet().to(device)
-optimizer = torch.optim.Adam(vae_model.parameters(), lr = LEARNING_RATE) 
+vae_model = # TODO 
+optimizer = # TODO 
 # add a learning rate scheduler based on the lr_lambda function
-scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.3, total_iters=10)
+scheduler = # TODO
 
 # training loop
 writer = SummaryWriter(log_dir=TENSORBOARD_LOGDIR)  # tensorboard summary
-
 for epoch in range(N_EPOCHS):
     current_train_loss = 0.0
     current_valid_loss = 0.0
     
     # TODO 
     # training iterations
-    
-    #Generate good images and then show then in the project (not only the segmentations).
-    #Implement the training operations. 
 
-    for inputs, labels in dataloader:
-        optimizer.zero_grad()
-        outputs = vae_model(inputs.to(device)) #Putting input to get the output
-        print(type(outputs))
-        loss = vae.vae_loss(outputs, labels.float().to(device)) #update the weights
-        loss.backward() # backpropagate the weights to update them
-        optimizer.step() #calling the optimizer 
-        current_train_loss += loss.item() #record the training loss / It sum over tell the batches
-        # We can use the original input. 
-
-    # evaluate validation loss
-    with torch.no_grad():
-        vae_model.eval() # turns off the training setting to allow evaluation 
-        for inputs, labels in valid_dataloader: #Use forward pass and you update the loop
-            outputs = vae_model(inputs.to(device))
-            loss = vae.vae_loss(outputs, labels.float().to(device))
-            current_valid_loss += loss.item()
-        vae_model.train() # turns training setting back on
-
-    # Write to tensorboard log
-    writer.add_scalar("Loss/train", current_train_loss / len(dataloader), epoch)
-    writer.add_scalar("Loss/validation", current_valid_loss / len(valid_dataloader), epoch)
-    scheduler.step() # step the learning step scheduler.    
-
-    # save examples of real/fake images.
-    if (epoch + 1) % DISPLAY_FREQ == 0:
-        img_grid = make_grid(
-            torch.cat((x_recon[:5], x_real[:5])), nrow=5, padding=12, pad_value=-1)
-        writer.add_image(
-            "Real_fake", np.clip(img_grid[0][np.newaxis], -1, 1) / 2 + 0.5, epoch + 1)
-        
-    # TODO: sample noise 
-    
-    # TODO: generate images and display
-    
-
-torch.save(vae_model.state_dict(), CHECKPOINTS_DIR / "vae_model.pth")
-
-
-"""
     # evaluate validation loss
     with torch.no_grad():
         vae_model.eval()
@@ -161,4 +107,21 @@ torch.save(vae_model.state_dict(), CHECKPOINTS_DIR / "vae_model.pth")
         vae_model.train()
     # write to tensorboard log
     writer.add_scalar("Loss/train", current_train_loss / len(dataloader), epoch)
-    writer.add_scalar("Loss/validation", current_valid_loss / len(valid_dataloader), epoch)"""
+    writer.add_scalar(
+        "Loss/validation", current_valid_loss / len(valid_dataloader), epoch
+    )
+    scheduler.step() # step the learning step scheduler
+
+    # save examples of real/fake images
+    if (epoch + 1) % DISPLAY_FREQ == 0:
+        img_grid = make_grid(
+            torch.cat((x_recon[:5], x_real[:5])), nrow=5, padding=12, pad_value=-1
+        )
+        writer.add_image(
+            "Real_fake", np.clip(img_grid[0][np.newaxis], -1, 1) / 2 + 0.5, epoch + 1
+        )
+        
+    # TODO: sample noise 
+    # TODO: generate images and display
+
+torch.save(vae_model.state_dict(), CHECKPOINTS_DIR / "vae_model.pth")
