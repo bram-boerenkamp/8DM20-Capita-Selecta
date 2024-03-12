@@ -1,3 +1,4 @@
+#%%
 import random
 from pathlib import Path
 
@@ -7,6 +8,8 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import make_grid
 from tqdm import tqdm
+import torch.optim as optim
+import torch.optim.lr_scheduler as lr_scheduler
 
 import utils
 import vae
@@ -86,32 +89,50 @@ valid_dataloader = DataLoader(
 )
 
 # initialise model, optimiser
-vae_model = # TODO 
-optimizer = # TODO 
+vae_model = vae.VAE().to(device) # TODO 
+optimizer = torch.optim.Adam(vae_model.parameters(), lr=LEARNING_RATE) # TODO 
 # add a learning rate scheduler based on the lr_lambda function
-scheduler = # TODO
+scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.3, total_iters=10) # TODO
 
 # training loop
 writer = SummaryWriter(log_dir=TENSORBOARD_LOGDIR)  # tensorboard summary
+
 for epoch in range(N_EPOCHS):
     current_train_loss = 0.0
     current_valid_loss = 0.0
     
-    # TODO 
+    for inputs, labels in tqdm(dataloader, position=0):
+        optimizer.zero_grad()
+        outputs, mu, logvar = vae_model(inputs.to(device)) #Putting input to get the output
+        loss = vae.vae_loss(inputs=inputs.to(device),
+                            recons=outputs.to(device),
+                            mu=mu.to(device),
+                            logvar=logvar.to(device)) #update the weights
+        loss.backward() # backpropagate the weights to update them
+        optimizer.step() #calling the optimizer 
+        current_train_loss += loss.item() #record the training loss / It sum over tell the batches
+        # We can use the original input. # TODO 
     # training iterations
 
     # evaluate validation loss
     with torch.no_grad():
         vae_model.eval()
-        # TODO 
+        for inputs, labels in dataloader:
+            outputs, mu, logvar = vae_model(inputs.to(device)) #Putting input to get the output
+            loss = vae.vae_loss(inputs=inputs.to(device),
+                            recons=outputs.to(device),
+                            mu=mu.to(device),
+                            logvar=logvar.to(device))
+            current_valid_loss += loss.item()
         vae_model.train()
+
     # write to tensorboard log
     writer.add_scalar("Loss/train", current_train_loss / len(dataloader), epoch)
     writer.add_scalar(
         "Loss/validation", current_valid_loss / len(valid_dataloader), epoch
     )
     scheduler.step() # step the learning step scheduler
-
+'''
     # save examples of real/fake images
     if (epoch + 1) % DISPLAY_FREQ == 0:
         img_grid = make_grid(
@@ -123,5 +144,5 @@ for epoch in range(N_EPOCHS):
         
     # TODO: sample noise 
     # TODO: generate images and display
-
+'''
 torch.save(vae_model.state_dict(), CHECKPOINTS_DIR / "vae_model.pth")
