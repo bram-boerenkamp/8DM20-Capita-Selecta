@@ -11,11 +11,10 @@ import shutil
 import scipy
 
 #global paths
-FOLDER_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Elastix'
+FOLDER_PATH = r'C:\Users\20192236\Documents\MY1\8DM20_CSinMIA'
+DATA_PATH = r'C:\Users\20192236\Documents\MY1\8DM20_CSinMIA\TrainingData'
 
-DATA_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Data\TrainingData'
-
-CODE_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Hausdorff and dice score'
+CODE_PATH = r'C:\Users\20192236\Documents\MY1\8DM20_CSinMIA\Code'
 
 
 #elastix paths and definitions
@@ -26,12 +25,12 @@ el = elastix.ElastixInterface(elastix_path=ELASTIX_PATH)
 #global variables
 patient_list = ['p102', 'p107', 'p108', 'p109', 'p115', 'p116', 'p117', 'p119', 'p120','p125', 'p127', 'p128', 'p129', 'p133', 'p135']
 number_of_patients = 5 # for earlier stopping of the code
-parameters_file_path = os.path.join(CODE_PATH, 'Par0001affine.txt')
+parameters_file_path = os.path.join(CODE_PATH,'parameter_files', 'Par0001affine.txt')
 #%% create a result dir and removes all old results!
 
 #%% registration and transformation
 #delete all old stuff and make new dirs
-output_dir = os.path.join(FOLDER_PATH, 'results_average_score')
+output_dir = os.path.join(FOLDER_PATH, 'results_average_score_ParameterTest')
 output_dir = pathlib.Path(output_dir)
 if os.path.exists(output_dir):
     shutil.rmtree(output_dir)
@@ -56,6 +55,7 @@ for index_fixed, fixed_patient in enumerate(patient_list):
                 moving_image = sitk.ReadImage(moving_image_path)
                 fixed_image = sitk.GetArrayFromImage(fixed_image)
                 moving_image = sitk.GetArrayFromImage(moving_image)
+                print(moving_image.shape)
                 #lets register!
                 el.register(
                             fixed_image=fixed_image_path,
