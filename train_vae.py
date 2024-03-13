@@ -92,7 +92,7 @@ valid_dataloader = DataLoader(
 vae_model = vae.VAE().to(device) # TODO 
 optimizer = torch.optim.Adam(vae_model.parameters(), lr=LEARNING_RATE) # TODO 
 # add a learning rate scheduler based on the lr_lambda function
-scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.3, total_iters=10) # TODO
+scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda)
 
 # training loop
 writer = SummaryWriter(log_dir=TENSORBOARD_LOGDIR)  # tensorboard summary
