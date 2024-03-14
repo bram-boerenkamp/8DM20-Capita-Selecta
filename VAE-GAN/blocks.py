@@ -9,6 +9,9 @@ import torch.nn.functional as F
 # your favorite normalization method, such as Batch Norm or Instance Norm.
 # Second, it applies scale and bias to the normalized output, conditioned on
 # the segmentation map.
+#
+# Parameters
+# -----------------------
 # The format of |config_text| is spade(norm)(ks), where
 # (norm) specifies the type of parameter-free normalization.
 #       (e.g. syncbatch, batch, instance)
@@ -16,9 +19,9 @@ import torch.nn.functional as F
 # Example |config_text| will be spadesyncbatch3x3, or spadeinstance5x5.
 # Also, the other arguments are
 # |out_ch|: the #channels of the normalized activations, hence the output dim of SPADE
-# |in_ch_sem|: the #channels of the input semantic map, hence the input dim of SPADE
+# |in_ch_seg|: the #channels of the input semantic map, hence the input dim of SPADE
 class SPADE(nn.Module):
-    def __init__(self, config_text, in_ch_sem, out_ch):
+    def __init__(self, config_text, in_ch_seg, out_ch):
         super().__init__()
 
 
@@ -37,12 +40,13 @@ class SPADE(nn.Module):
             raise ValueError('%s is not a recognized param-free norm type in SPADE'
                              % param_free_norm_type)
 
-        # The dimension of the intermediate embedding space. Yes, hardcoded.
+        # The dimension of the intermediate embedding space. Yes, hardcoded. 
+        # (Bram: inherited from SPADE we can play with this value)
         nhidden = 128
 
         pw = ks // 2
         self.mlp_shared = nn.Sequential(
-            nn.Conv2d(in_ch_sem, nhidden, kernel_size=ks, padding=pw),
+            nn.Conv2d(in_ch_seg, nhidden, kernel_size=ks, padding=pw),
             nn.ReLU()
         )
         self.mlp_gamma = nn.Conv2d(nhidden, out_ch, kernel_size=ks, padding=pw) # TODO SPADE feature maps nr defined as same as layer
@@ -115,10 +119,10 @@ class LeakyBlock(nn.Module):
     def __init__(self, in_ch, out_ch, stride=1):
         super().__init__()
         self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1, stride=stride)
-        self.relu =  nn.LeakyReLU() # TODO  # leaky ReLU
-        self.bn1 = nn.BatchNorm2d(num_features=out_ch) # TODO # batch normalisation
+        self.relu =  nn.LeakyReLU()  # leaky ReLU
+        self.bn1 = nn.BatchNorm2d(num_features=out_ch) # batch normalisation
         self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1, stride=stride)
-        self.bn2 = nn.BatchNorm2d(num_features=out_ch)  # TODO 
+        self.bn2 = nn.BatchNorm2d(num_features=out_ch)  
 
     def forward(self, x):
         """Performs a forward pass of the block
@@ -150,23 +154,25 @@ class SPADEBlock(nn.Module):
         number of input channels to the block
     out_ch : int     
         number of output channels of the block
+    in_ch_seg : int
+        number of channels of the input image default=1
     """
 
-    def __init__(self, in_ch, out_ch):
+    def __init__(self, in_ch, out_ch, in_ch_seg=1):
         super().__init__()
         self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
         self.relu =  nn.LeakyReLU() 
-        self.spade = SPADE(config_text='spadebatch3x3',in_ch_sem=1,out_ch=out_ch) 
+        self.spade = SPADE(config_text='spadebatch3x3',in_ch_seg=in_ch_seg,out_ch=out_ch) 
         self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
-        self.spade2 = SPADE(config_text='spadebatch3x3',in_ch_sem=1,out_ch=out_ch) 
+        self.spade2 = SPADE(config_text='spadebatch3x3',in_ch_seg=in_ch_seg,out_ch=out_ch) 
 
     def forward(self, x, labels):
         """Performs a forward pass of the block
        
         x : torch.Tensor
             the input to the block
-        torch.Tensor
-            the output of the forward pass
+        labels : torch.Tensor
+            the segmentation map or labels to the corresponding image
         """
         # a block consists of two convolutional layers
         # with ReLU activations

@@ -2,9 +2,6 @@ import torch
 import torch.nn as nn
 import blocks
 
-
-
-
 class Encoder(nn.Module):
     """The encoder part of the VAE-GAN
 
@@ -72,7 +69,7 @@ class Generator(nn.Module):
         width of image at lowest resolution level, by default 8    
     """
 
-    def __init__(self, labels=None, z_dim=256, chs=(256, 128, 64, 32), h=8, w=8):
+    def __init__(self, z_dim=256, chs=(256, 128, 64, 32), h=8, w=8):
 
         super().__init__()
         self.chs = chs
@@ -103,6 +100,8 @@ class Generator(nn.Module):
         ----------
         z : torch.Tensor
             input to the generator
+        labels : torch.Tensor
+            the segmentation map or labels to the corresponding image
         
         Returns
         -------
@@ -125,6 +124,9 @@ class Discriminator(nn.Module):
     inspired on the discriminator from the SPADE paper.
     
     The block are defined here and not in blocks.py because of their highly specific nature.
+
+    chs : tuple
+        holds the number of channels for each block
     """
     def __init__(self, chs=(64,128,256,512)):
         super().__init__()

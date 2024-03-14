@@ -10,7 +10,7 @@ from torchvision.utils import make_grid
 from tqdm import tqdm
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
-from torchinfo import summary
+from torchinfo import summary 
 
 import utils
 import blocks
@@ -92,10 +92,16 @@ valid_dataloader = DataLoader(
 
 # initialise model, optimiser
 vae_gan_model = vae_gan.VAE_GAN().to(device) 
-#print(summary(vae_gan_model, verbose =2))
+
+#####################################################################
+# function to show a model summary use verbose =2 for more information
+# can help a lot to check if the model does what you intend it to do
+#####################################################################
+#print(summary(vae_gan_model, verbose =1))  
+
 optimizer = torch.optim.Adam(vae_gan_model.parameters(), lr=LEARNING_RATE) 
 # add a learning rate scheduler based on the lr_lambda function
-scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda)
+scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda) # scheduler based on the lr_lambda function
 
 # training loop
 writer = SummaryWriter(log_dir=TENSORBOARD_LOGDIR)  # tensorboard summary

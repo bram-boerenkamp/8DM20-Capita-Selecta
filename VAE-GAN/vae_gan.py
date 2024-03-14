@@ -14,6 +14,8 @@ class VAE_GAN(nn.Module):
         holds the number of input channels of each block in the encoder
     dec_chs : tuple 
         holds the number of input channels of each block in the decoder
+    dis_chs : tuple
+        holds the number of input channels of each block in the discriminator        
     """
     def __init__(
         self,
@@ -28,21 +30,26 @@ class VAE_GAN(nn.Module):
 
 
     def forward(self, x, labels):
-        """Performs a forwards pass of the VAE and returns the reconstruction
+        """Performs a forwards pass of the VAE-GAN and returns the real or fake prediction, reconstruction
         and mean + logvar.
 
         Parameters
         ----------
         x : torch.Tensor
             the input to the encoder
+        labels : torch.Tensor
+            the segmentation map or labels to the corresponding image
 
         Returns
         -------
-        torch.Tensor
+        real_fake_value : int
+            1 = discriminator predicts real image
+            0 = discriminator predicts fake image
+        fake_image : torch.Tensor
             the reconstruction of the input image
-        float
+        mu : float
             the mean of the latent distribution
-        float
+        logvar : float
             the log of the variance of the latent distribution
         """
         mu, logvar = self.encoder(x)
