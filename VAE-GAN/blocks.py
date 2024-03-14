@@ -16,13 +16,14 @@ import torch.nn.functional as F
 # Example |config_text| will be spadesyncbatch3x3, or spadeinstance5x5.
 # Also, the other arguments are
 # |out_ch|: the #channels of the normalized activations, hence the output dim of SPADE
-# |in_ch|: the #channels of the input semantic map, hence the input dim of SPADE
+# |in_ch_sem|: the #channels of the input semantic map, hence the input dim of SPADE
 class SPADE(nn.Module):
-    def __init__(self, config_text, in_ch, out_ch):
+    def __init__(self, config_text, in_ch_sem, out_ch):
         super().__init__()
 
+
         assert config_text.startswith('spade')
-        parsed = re.search('spade(\D+)(\d)x\d', config_text)
+        parsed = re.search(r'spade(\D+)(\d)x(\d)', config_text)
         param_free_norm_type = str(parsed.group(1))
         ks = int(parsed.group(2))
 
@@ -41,10 +42,10 @@ class SPADE(nn.Module):
 
         pw = ks // 2
         self.mlp_shared = nn.Sequential(
-            nn.Conv2d(in_ch, nhidden, kernel_size=ks, padding=pw),
+            nn.Conv2d(in_ch_sem, nhidden, kernel_size=ks, padding=pw),
             nn.ReLU()
         )
-        self.mlp_gamma = nn.Conv2d(nhidden, out_ch, kernel_size=ks, padding=pw)
+        self.mlp_gamma = nn.Conv2d(nhidden, out_ch, kernel_size=ks, padding=pw) # TODO SPADE feature maps nr defined as same as layer
         self.mlp_beta = nn.Conv2d(nhidden, out_ch, kernel_size=ks, padding=pw)
 
     def forward(self, x, segmap):
@@ -53,14 +54,12 @@ class SPADE(nn.Module):
         normalized = self.param_free_norm(x)
 
         # Part 2. produce scaling and bias conditioned on semantic map
-        segmap = F.interpolate(segmap, size=x.size()[2:], mode='nearest')
+        segmap = F.interpolate(segmap.float(), size=x.size()[2:], mode='nearest')
         actv = self.mlp_shared(segmap)
         gamma = self.mlp_gamma(actv)
         beta = self.mlp_beta(actv)
-
         # apply scale and bias
         out = normalized * (1 + gamma) + beta
-
         return out
     
 class Block(nn.Module):
@@ -157,11 +156,11 @@ class SPADEBlock(nn.Module):
         super().__init__()
         self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
         self.relu =  nn.LeakyReLU() 
-        self.spade = SPADE(config_text='spadebatch3x3',in_ch=in_ch,out_ch=out_ch) 
+        self.spade = SPADE(config_text='spadebatch3x3',in_ch_sem=1,out_ch=out_ch) 
         self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
-        self.spade2 = SPADE(config_text='spadebatch3x3',in_ch=in_ch,out_ch=out_ch) 
+        self.spade2 = SPADE(config_text='spadebatch3x3',in_ch_sem=1,out_ch=out_ch) 
 
-    def forward(self, x):
+    def forward(self, x, labels):
         """Performs a forward pass of the block
        
         x : torch.Tensor
@@ -174,10 +173,10 @@ class SPADEBlock(nn.Module):
         # use batch normalisation
         x = self.conv1(x)
         x = self.relu(x)
-        x = self.spade(x)
+        x = self.spade(x, labels)
         x = self.conv2(x)
         x = self.relu(x)
-        x = self.spade2(x)        
+        x = self.spade2(x, labels)        
 
         # TODO
         return x

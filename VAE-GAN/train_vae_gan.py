@@ -1,3 +1,4 @@
+#%%
 import random
 from pathlib import Path
 
@@ -9,9 +10,11 @@ from torchvision.utils import make_grid
 from tqdm import tqdm
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
+from torchinfo import summary
 
 import utils
 import blocks
+import vae_gan
 
 # to ensure reproducible training/validation split
 random.seed(42)
@@ -23,8 +26,8 @@ elif torch.backends.mps.is_available():
     device = torch.device("mps")
 else:
     device = torch.device("cpu")
-
-# directorys with data and to store training checkpoints and logs
+#%%
+# directories with data and to store training checkpoints and logs
 DATA_DIR = Path.cwd().parent / "TrainingData"
 CHECKPOINTS_DIR = Path.cwd() / "vae_gan_model_weights"
 CHECKPOINTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -41,3 +44,93 @@ DISPLAY_FREQ = 10
 
 # dimension of VAE latent space
 Z_DIM = 256
+
+# function to reduce the learning rate
+def lr_lambda(the_epoch):
+    """Function for scheduling learning rate"""
+    return (
+        1.0
+        if the_epoch < DECAY_LR_AFTER
+        else 1 - float(the_epoch - DECAY_LR_AFTER) / (N_EPOCHS - DECAY_LR_AFTER)
+    )
+
+
+# find patient folders in training directory
+# excluding hidden folders (start with .)
+patients = [
+    path
+    for path in DATA_DIR.glob("*")
+    if not any(part.startswith(".") for part in path.parts)
+]
+random.shuffle(patients)
+
+# split in training/validation after shuffling
+partition = {
+    "train": patients[:-NO_VALIDATION_PATIENTS],
+    "validation": patients[-NO_VALIDATION_PATIENTS:],
+}
+
+# load training data and create DataLoader with batching and shuffling
+dataset = utils.ProstateMRDataset(partition["train"], IMAGE_SIZE)
+dataloader = DataLoader(
+    dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=True,
+    drop_last=True,
+    pin_memory=True,
+)
+
+# load validation data
+valid_dataset = utils.ProstateMRDataset(partition["validation"], IMAGE_SIZE)
+valid_dataloader = DataLoader(
+    valid_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=True,
+    drop_last=True,
+    pin_memory=True,
+)
+
+# initialise model, optimiser
+vae_gan_model = vae_gan.VAE_GAN().to(device) 
+#print(summary(vae_gan_model, verbose =2))
+optimizer = torch.optim.Adam(vae_gan_model.parameters(), lr=LEARNING_RATE) 
+# add a learning rate scheduler based on the lr_lambda function
+scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda)
+
+# training loop
+writer = SummaryWriter(log_dir=TENSORBOARD_LOGDIR)  # tensorboard summary
+
+for epoch in range(N_EPOCHS):
+    current_train_loss = 0.0
+    current_valid_loss = 0.0
+    
+    for inputs, labels in tqdm(dataloader, position=0):
+        optimizer.zero_grad()
+        real_fake_value, outputs, mu, logvar = vae_gan_model(inputs.to(device), labels.to(device)) #Putting input and labels to get the output
+        loss = vae_gan.vae_gan_loss(inputs=inputs.to(device),
+                            recons=outputs.to(device),
+                            mu=mu.to(device),
+                            logvar=logvar.to(device)) #update the weights
+        loss.backward() # backpropagate the weights to update them
+        optimizer.step() #calling the optimizer 
+        current_train_loss += loss.item() #record the training loss 
+
+
+    # evaluate validation loss
+    with torch.no_grad():
+        vae_gan_model.eval()
+        for inputs, labels in dataloader:
+            real_fake_value, outputs, mu, logvar = vae_gan_model(inputs.to(device), labels.to(device)) #Putting input to get the output
+            loss = vae_gan.vae_gan_loss(inputs=inputs.to(device),
+                            recons=outputs.to(device),
+                            mu=mu.to(device),
+                            logvar=logvar.to(device))
+            current_valid_loss += loss.item()
+        vae_gan_model.train()
+
+    # write to tensorboard log
+    writer.add_scalar("Loss/train", current_train_loss / len(dataloader), epoch)
+    writer.add_scalar(
+        "Loss/validation", current_valid_loss / len(valid_dataloader), epoch
+    )
+    scheduler.step() # step the learning step scheduler

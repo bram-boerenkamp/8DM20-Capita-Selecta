@@ -72,7 +72,7 @@ class Generator(nn.Module):
         width of image at lowest resolution level, by default 8    
     """
 
-    def __init__(self, z_dim=256, chs=(256, 128, 64, 32), h=8, w=8):
+    def __init__(self, labels=None, z_dim=256, chs=(256, 128, 64, 32), h=8, w=8):
 
         super().__init__()
         self.chs = chs
@@ -96,7 +96,7 @@ class Generator(nn.Module):
         )
         self.head = nn.Conv2d(chs[-1], 1, kernel_size=3, padding=1)
 
-    def forward(self, z):
+    def forward(self, z, labels):
         """Performs the forward pass of decoder
 
         Parameters
@@ -109,14 +109,15 @@ class Generator(nn.Module):
         x : torch.Tensor
         
         """
-        x = self.proj_z(z)# TODO: fully connected layer
-        x = self.reshape(x) # TODO: reshape to image dimensions
+        x = self.proj_z(z)#  fully connected layer
+        x = self.reshape(x) #  reshape to image dimensions
         for i in range(len(self.chs) - 1):
-            # TODO: transposed convolution
+            # transposed convolution
             x = self.upconvs[i](x)
-            # TODO: convolutional block
-            x = self.dec_blocks[i](x)
-        return self.head(x)
+            # convolutional SPADE block
+            x = self.dec_blocks[i](x, labels)
+        x = self.head(x)
+        return x
     
 
 class Discriminator(nn.Module):
@@ -127,13 +128,12 @@ class Discriminator(nn.Module):
     """
     def __init__(self, chs=(64,128,256,512)):
         super().__init__()
-        self.chs = chs
 
         sequence = [[nn.Conv2d(1, chs[0], kernel_size=3, stride=2, padding=1), 
                      nn.LeakyReLU()]]
         
-        for i in range(1,len(chs)):
-            stride = 1 if i == len(chs)-1 else 2
+        for i in range(0,len(chs)-1):
+            stride = 1 if i == len(chs)-2 else 2
             sequence += [[nn.Sequential(
                             nn.Conv2d(chs[i], chs[i+1], kernel_size=3, stride=stride, padding=1),
                             nn.BatchNorm2d(num_features=chs[i+1])
@@ -143,6 +143,7 @@ class Discriminator(nn.Module):
         self.dis_blocks = []
         for n in range(len(sequence)):
             self.dis_blocks.append(nn.Sequential(*sequence[n]))
+        self.dis_blocks = nn.ModuleList(self.dis_blocks)
         self.out = nn.Conv2d(chs[-1], 1, kernel_size=3, padding=1, stride=1)
 
     def forward(self, x):

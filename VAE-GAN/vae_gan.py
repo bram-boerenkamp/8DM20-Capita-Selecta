@@ -27,7 +27,7 @@ class VAE_GAN(nn.Module):
         self.discriminator = architectures.Discriminator(chs=dis_chs)
 
 
-    def forward(self, x):
+    def forward(self, x, labels):
         """Performs a forwards pass of the VAE and returns the reconstruction
         and mean + logvar.
 
@@ -48,10 +48,10 @@ class VAE_GAN(nn.Module):
         mu, logvar = self.encoder(x)
         latent_z = sample_z(mu, logvar)
         
-        output = self.generator(latent_z)
-        real_fake_value = self.discriminator(output)
+        fake_image = self.generator(latent_z, labels)
+        real_fake_value = self.discriminator(fake_image)
         
-        return real_fake_value, output, mu, logvar
+        return real_fake_value, fake_image, mu, logvar
 
 
 def get_noise(n_samples, z_dim, device="cpu"):
