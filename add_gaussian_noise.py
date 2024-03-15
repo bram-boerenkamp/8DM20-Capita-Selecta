@@ -84,6 +84,14 @@ for i in range(len(subfolders)):
         blur_arrays.append(blur_array)
         ax[j+1].imshow(blur_array[depth,:,:], cmap='gray')
         ax[j+1].set_title(f'mr image blurred, variance {sigma[j]}')
+        
+        # Save the blurred images
+        output_folder = os.path.join(DATA_PATH, f'blurred_level_{j+1}')
+        os.makedirs(output_folder, exist_ok=True)
+        output_path = os.path.join(output_folder, f'{patient}_mr_bffe_blurred.mhd')
+        sitk.WriteImage(sitk.GetImageFromArray(blur_array), output_path)
+        
+        
 
 
 
