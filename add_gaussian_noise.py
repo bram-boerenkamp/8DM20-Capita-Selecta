@@ -66,13 +66,15 @@ filenames = ["mr_bffe", "mr_bffe.zraw","prostaat","prostaat.zraw"]
 
 for i in range(len(subfolders)):
     patient = subfolders[i]
-    sigma = [1,1.5,2]
+    sigma = [1,2]
     currentpath_mr = os.path.join(DATA_PATH, patient, 'mr_bffe.mhd')
+    currentpath_mask = os.path.join(DATA_PATH,patient,'prostaat.mhd')
     image_mr = sitk.ReadImage(currentpath_mr)
     array_mr = sitk.GetArrayFromImage(image_mr)
+    image_mask = sitk.ReadImage(currentpath_mask)
     
     depth = 50
-    fig, ax = plt.subplots(1, 4, figsize=(20, 5))
+    fig, ax = plt.subplots(1, 3, figsize=(20, 5))
     ax[0].imshow(array_mr[depth,:,:], cmap='gray')
     ax[0].set_title('mr image not blurred')
     
@@ -86,10 +88,18 @@ for i in range(len(subfolders)):
         ax[j+1].set_title(f'mr image blurred, variance {sigma[j]}')
         
         # Save the blurred images
-        output_folder = os.path.join(DATA_PATH, f'blurred_level_{j+1}')
+        OUTPUT_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Data'
+        output_folder = os.path.join(OUTPUT_PATH, f'blurred_level_{j+1}')
         os.makedirs(output_folder, exist_ok=True)
-        output_path = os.path.join(output_folder, f'{patient}_mr_bffe_blurred.mhd')
-        sitk.WriteImage(sitk.GetImageFromArray(blur_array), output_path)
+        output_subfolder = os.path.join(output_folder,patient)
+        os.makedirs(os.path.join(output_folder,patient),exist_ok=True)
+        output_path_mr = os.path.join(output_subfolder, 'mr_bffe.mhd')
+        output_path_mask = os.path.join(output_subfolder,'prostaat.mhd')
+        sitk.WriteImage(sitk.GetImageFromArray(blur_array), output_path_mr)
+        sitk.WriteImage(image_mask,output_path_mask)
+        
+        
+
         
         
 
