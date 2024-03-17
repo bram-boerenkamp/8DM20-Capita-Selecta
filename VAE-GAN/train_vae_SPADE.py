@@ -15,7 +15,7 @@ from torchinfo import summary
 from torchvision.utils import save_image
 import utils
 import blocks
-import vae_gan
+import vae_SPADE
 
 # to ensure reproducible training/validation split
 random.seed(42)
