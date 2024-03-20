@@ -91,7 +91,7 @@ class Generator(nn.Module):
         self.dec_blocks = nn.ModuleList(
             [blocks.SPADEBlock(chs[i], chs[i+1]) for i in range(len(chs)- 1)]     #note the use of spade blocks      
         )
-        self.head = nn.Conv2d(chs[-1], 1, kernel_size=3, padding=1)
+        self.head = nn.Sequential(nn.Conv2d(chs[-1], 1, kernel_size=3, padding=1))
 
     def forward(self, z, labels):
         """Performs the forward pass of decoder

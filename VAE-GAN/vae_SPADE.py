@@ -5,7 +5,7 @@ import architectures
 l1_loss = torch.nn.L1Loss()
 
 
-class VAE_GAN(nn.Module):
+class VAE_SPADE(nn.Module):
     """A representation of the VAE-GAN
 
     Parameters
@@ -25,7 +25,6 @@ class VAE_GAN(nn.Module):
         super().__init__()
         self.encoder = architectures.Encoder(chs=enc_chs)
         self.generator = architectures.Generator(chs=dec_chs)
-        #self.discriminator = architectures.Discriminator(chs=dis_chs)
 
 
     def forward(self, x, labels):
@@ -55,7 +54,6 @@ class VAE_GAN(nn.Module):
         latent_z = sample_z(mu, logvar)
         
         fake_image = self.generator(latent_z, labels)
-#        real_fake_value = self.discriminator(fake_image)
         
         return fake_image, mu, logvar
 
@@ -111,7 +109,7 @@ def kld_loss(mu, logvar):
     """
     return -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp())
 
-def vae_gan_loss(inputs, recons, mu, logvar):
+def vae_SPADE_loss(inputs, recons, mu, logvar):
     """Computes the VAE loss, sum of reconstruction and KLD loss
 
     Parameters

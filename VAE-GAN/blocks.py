@@ -184,5 +184,4 @@ class SPADEBlock(nn.Module):
         x = self.relu(x)
         x = self.spade2(x, labels)        
 
-        # TODO
         return x
