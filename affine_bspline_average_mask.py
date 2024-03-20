@@ -61,7 +61,8 @@ def dice(im1, im2, empty_score=1.0):
 #%%
 #global paths
 FOLDER_PATH =  r'D:\Documenten\Master\Q3\Capita selecta image analysis\Elastix'
-DATA_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Data\TrainingData'
+#DATA_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Data\TrainingData'
+DATA_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Data\test123'
 CODE_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Grid size test'
 #elastix paths and definitions
 ELASTIX_PATH = os.path.join(FOLDER_PATH, 'elastix.exe')
@@ -72,7 +73,7 @@ el = elastix.ElastixInterface(elastix_path=ELASTIX_PATH)
 patient_list = ['p102', 'p107', 'p108', 'p109', 'p115', 'p116', 'p117', 'p119', 'p120','p125', 'p127', 'p128', 'p129', 'p133', 'p135']
 number_of_patients = 1 # for earlier stopping of the code
 parameters_file_path_affine = os.path.join(CODE_PATH,'parameter_files',  'Par0001affine(new).txt')
-parameters_file_path_bspline = os.path.join(CODE_PATH,'parameter_files',  'Par0001bspline08.txt')
+parameters_file_path_bspline = os.path.join(CODE_PATH,'parameter_files',  'Parameter_file_bspline_final.txt')
 #%% create a result dir and removes all old results!
 
 #%% registration and transformation
@@ -118,17 +119,18 @@ for index_fixed, fixed_patient in enumerate(patient_list):
                             output_dir=str(output_dir_1)
                             )
                 
-                # #lets transform the masks!
-                # tr = elastix.TransformixInterface(parameters=os.path.join(output_dir_1, 'TransformParameters.0.txt'),
-                #                                 transformix_path=TRANSFORMIX_PATH)
+                #lets transform the masks!
+                tr = elastix.TransformixInterface(parameters=os.path.join(output_dir_1, 'TransformParameters.0.txt'),
+                                                transformix_path=TRANSFORMIX_PATH)
                 
                 #create output dir and store the moved mask there
-                # output_dir_mask_1 = os.path.join(output_dir_masks_1, fixed_patient, moving_patient)
-                # if os.path.exists(output_dir_mask_1):
-                #     shutil.rmtree(output_dir_mask_1)
-                # output_dir_mask_path_1 = pathlib.Path(output_dir_mask_1)
-                # pathlib.Path.mkdir(output_dir_mask_path_1, parents=True, exist_ok=False)
-                # tr.transform_image(moving_mask_path, output_dir=output_dir_mask_1)
+                output_dir_mask_1 = os.path.join(output_dir_masks_1, fixed_patient, moving_patient)
+                if os.path.exists(output_dir_mask_1):
+                    shutil.rmtree(output_dir_mask_1)
+                output_dir_mask_path_1 = pathlib.Path(output_dir_mask_1)
+                pathlib.Path.mkdir(output_dir_mask_path_1, parents=True, exist_ok=False)
+                tr.transform_image(moving_mask_path, output_dir=output_dir_mask_1)
+                
                 
                 #use the result of the affine transformation as input for the bspline
                 moving_mask_path_2 = os.path.join(output_dir_masks_1,fixed_patient,moving_patient,'result.mhd')
@@ -153,7 +155,7 @@ for index_fixed, fixed_patient in enumerate(patient_list):
                     shutil.rmtree(output_dir_mask_2)
                 output_dir_mask_path_2 = pathlib.Path(output_dir_mask_2)
                 pathlib.Path.mkdir(output_dir_mask_path_2, parents=True, exist_ok=False)
-                tr.transform_image(moving_mask_path, output_dir=output_dir_mask_2)
+                tr.transform_image(moving_mask_path_2, output_dir=output_dir_mask_2)
                 
 
 #%% calculating average masks per patient
@@ -171,7 +173,7 @@ for fixed_mask in os.listdir(output_dir_masks_2):
     #make mask binary again
     filter = sitk.MinimumMaximumImageFilter()
     filter.Execute(new_mask)
-    threshold = filter.GetMaximum()/2
+    threshold = filter.GetMaximum()*(9/15)
 
     binary_filter = sitk.BinaryThresholdImageFilter()
     binary_filter.SetLowerThreshold(0)
