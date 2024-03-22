@@ -79,13 +79,6 @@ class ProstateMRDataset(torch.utils.data.Dataset):
             ),
         )
 
-def load_3d_image_as_numpy(image_path):
-    """Load a 3D image and return it as a NumPy array."""
-    image = sitk.ReadImage(str(image_path))
-    image_array = sitk.GetArrayFromImage(image)
-    return image_array
-
-
 
 class DiceBCELoss(nn.Module):
     """Loss function, computed as the sum of Dice score and binary cross-entropy.
