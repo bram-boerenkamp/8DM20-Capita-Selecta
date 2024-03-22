@@ -9,6 +9,7 @@ Introducing Gaussian noise to data
 import os
 import matplotlib.pyplot as plt 
 import SimpleITK as sitk
+import numpy as np
 
 #%%
 #Function to perform gaussian blurring with a given variance
@@ -46,9 +47,9 @@ def gaussian_blur(args):
     blur_image = caster.Execute(blur_image)
     
     # Convert SimpleITK images to NumPy arrays
-    blur_array = sitk.GetArrayFromImage(blur_image)
+    #blur_array = sitk.GetArrayFromImage(blur_image)
     
-    return blur_array
+    return blur_image
 
 
 #%%
@@ -71,22 +72,15 @@ for i in range(len(subfolders)):
     currentpath_mask = os.path.join(DATA_PATH,patient,'prostaat.mhd')
     image_mr = sitk.ReadImage(currentpath_mr)
     array_mr = sitk.GetArrayFromImage(image_mr)
-    image_mask = sitk.ReadImage(currentpath_mask)
+        
+    image_mask = sitk.ReadImage(currentpath_mask)  
     
-    depth = 50
-    fig, ax = plt.subplots(1, 3, figsize=(20, 5))
-    ax[0].imshow(array_mr[depth,:,:], cmap='gray')
-    ax[0].set_title('mr image not blurred')
-    
-    #Blur the image for 3 different variances of Gaussian blur
+    #Blur the image for 2 different variances of Gaussian blur
     blur_arrays = []
     for j in range(len(sigma)):
         args = [currentpath_mr,sigma[j]]
-        blur_array = gaussian_blur(args)
-        blur_arrays.append(blur_array)
-        ax[j+1].imshow(blur_array[depth,:,:], cmap='gray')
-        ax[j+1].set_title(f'mr image blurred, variance {sigma[j]}')
-        
+        blur_image = gaussian_blur(args)
+
         # Save the blurred images
         OUTPUT_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Data'
         output_folder = os.path.join(OUTPUT_PATH, f'blurred_level_{j+1}')
@@ -95,7 +89,7 @@ for i in range(len(subfolders)):
         os.makedirs(os.path.join(output_folder,patient),exist_ok=True)
         output_path_mr = os.path.join(output_subfolder, 'mr_bffe.mhd')
         output_path_mask = os.path.join(output_subfolder,'prostaat.mhd')
-        sitk.WriteImage(sitk.GetImageFromArray(blur_array), output_path_mr)
+        sitk.WriteImage(blur_image, output_path_mr)
         sitk.WriteImage(image_mask,output_path_mask)
         
         
