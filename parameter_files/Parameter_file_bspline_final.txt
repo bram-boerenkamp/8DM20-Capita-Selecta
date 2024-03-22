@@ -1,0 +1,48 @@
+
+//Bspline parameter file
+//ImageTypes
+(FixedInternalImagePixelType "float")
+(MovingInternalImagePixelType "float")
+
+(CheckNumberOfSamples "false")
+(UseDirectionCosines "true")
+
+//Components
+(Registration "MultiResolutionRegistration")
+(Interpolator "BSplineInterpolator")
+(ResampleInterpolator "FinalBSplineInterpolator")
+(Resampler "DefaultResampler")
+
+(FixedImagePyramid "FixedRecursiveImagePyramid")
+(MovingImagePyramid "MovingRecursiveImagePyramid")
+
+(Optimizer "AdaptiveStochasticGradientDescent")
+(Transform "BSplineTransform")
+(Metric "AdvancedMattesMutualInformation")
+
+//Transformation
+(FinalGridSpacingInPhysicalUnits 32)
+(HowToCombineTransforms "Compose")
+
+//SimularityMeasure
+(NumberOfHistogramBins 32)
+(ErodeMask "false")
+
+//MultiResolution
+(NumberOfResolutions 4)
+
+//Optimizer
+(MaximumNumberOfIterations 2000)
+
+//Sampling
+(NumberOfSpatialSamples 2048)
+(NewSamplesEveryIteration "true")
+(ImageSampler "Random")
+
+//Interpolation
+(BSplineInterpolationOrder 1)
+(FinalBSplineInterpolationOrder 0)
+(DefaultPixelValue 0)
+(WriteResultImage "true")
+(ResultImagePixelType "short")
+(ResultImageFormat "mhd")

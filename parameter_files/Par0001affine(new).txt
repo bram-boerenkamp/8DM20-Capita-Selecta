@@ -21,6 +21,7 @@
 
 (AutomaticScalesEstimation "true")
 (AutomaticTransformInitialization "true")
+(AutomaticTransformInitializationMethod "GeometricalCenter")
 
 (NumberOfResolutions 4)
 
@@ -46,7 +47,7 @@
 
 (UseRandomSampleRegion "true")
 (SampleRegionSize 50.0  50.0 50.0)
-(CheckNumberOfSamples "true")
+(CheckNumberOfSamples "false")
 (NewSamplesEveryIteration "true" )
 
 //Number of spatial samples used to compute the mutual information in each resolution level:
@@ -56,7 +57,7 @@
 (BSplineInterpolationOrder 1 )
 
 //Order of B-Spline interpolation used for applying the final deformation:
-(FinalBSplineInterpolationOrder 3)
+(FinalBSplineInterpolationOrder 0)
 
 //Default pixel value for pixels that come from outside the picture:
 (DefaultPixelValue 0)
@@ -64,7 +65,7 @@
 
 
 //SP: Param_a in each resolution level. a_k = a/(A+k+1)^alpha
-(SP_a 2000.0)
+(SP_a 500)
 
 //SP: Param_A in each resolution level. a_k = a/(A+k+1)^alpha
 (SP_A 200.0)
