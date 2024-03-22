@@ -16,7 +16,7 @@ class ProstateMRDataset_with_gen(torch.utils.data.Dataset):
         size of images to be interpolated to
     """
 
-    def __init__(self, paths, gen_paths, img_size):
+    def __init__(self, paths, gen_paths, img_size, gen_frac=1):
         self.mr_image_list = []
         self.mask_list = []
         self.gen_list = []
@@ -34,17 +34,45 @@ class ProstateMRDataset_with_gen(torch.utils.data.Dataset):
                     np.int32
                 )
             )
-        for path in gen_paths:
-            self.gen_list.append(
-                sitk.GetArrayFromImage(sitk.ReadImage(path / "generated.mhd")).astype(
-                    np.float32
+        if gen_frac == 1: #50/50 datasplit real/fake
+            for path in gen_paths:
+                self.gen_list.append(
+                    sitk.GetArrayFromImage(sitk.ReadImage(path / "generated.mhd")).astype(
+                        np.float32
+                    )
                 )
-            )
-            self.mask_list.append(
-                sitk.GetArrayFromImage(sitk.ReadImage(path / "prostaat.mhd")).astype(
-                    np.int32
-                )
-            )            
+                self.mask_list.append(
+                    sitk.GetArrayFromImage(sitk.ReadImage(path / "prostaat.mhd")).astype(
+                        np.int32
+                    )
+                )  
+
+        if gen_frac == 0.5: #72/25 datasplit real/fake
+            for path in gen_paths:
+                if len(self.gen_list) < len(self.mr_image_list)/2:
+                    self.gen_list.append(
+                        sitk.GetArrayFromImage(sitk.ReadImage(path / "generated.mhd")).astype(
+                            np.float32
+                        )
+                    )
+                    self.mask_list.append(
+                        sitk.GetArrayFromImage(sitk.ReadImage(path / "prostaat.mhd")).astype(
+                            np.int32
+                        )
+                    )  
+        if gen_frac == 1.5: # 25/75 datasplit real/fake
+            for i in range(1):
+                for path in gen_paths:
+                    self.gen_list.append(
+                        sitk.GetArrayFromImage(sitk.ReadImage(path / "generated.mhd")).astype(
+                            np.float32
+                        )
+                    )
+                    self.mask_list.append(
+                        sitk.GetArrayFromImage(sitk.ReadImage(path / "prostaat.mhd")).astype(
+                            np.int32
+                        )
+                    )  
         
         # number of patients and slices in the dataset
         self.no_patients = len(self.mr_image_list)+len(self.gen_list)

@@ -22,8 +22,8 @@ else:
     device = torch.device("cpu")
 
 # directorys with data and to store training checkpoints and logs
-DATA_DIR = Path.cwd().parent / "TrainingData"
-DATA_DIR_GEN = Path.cwd().parent / "Generated_images_OG"
+DATA_DIR = Path.cwd().parent.parent / "TrainingData"
+DATA_DIR_GEN = Path.cwd().parent.parent / "Generated_images_OG"
 CHECKPOINTS_DIR = Path.cwd() / "segmentation_model_weights"
 CHECKPOINTS_DIR.mkdir(parents=True, exist_ok=True)
 TENSORBOARD_LOGDIR = "segmentation_runs"
