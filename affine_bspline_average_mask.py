@@ -9,17 +9,8 @@ import pathlib
 import shutil
 import numpy as np
 import scipy
-from sklearn import preprocessing
 
-#%% 
-import torch
-# find out if a GPU is available
-if torch.cuda.is_available():
-    device = torch.device("cuda")
-elif torch.backends.mps.is_available():
-    device = torch.device("mps")
-else:
-    device = torch.device("cpu")
+
 #%%
 def dice(im1, im2, empty_score=1.0):
     """
@@ -61,8 +52,7 @@ def dice(im1, im2, empty_score=1.0):
 #%%
 #global paths
 FOLDER_PATH =  r'D:\Documenten\Master\Q3\Capita selecta image analysis\Elastix'
-#DATA_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Data\TrainingData'
-DATA_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Data\test123'
+DATA_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Data\blurred_level_2'
 CODE_PATH = r'D:\Documenten\Master\Q3\Capita selecta image analysis\Grid size test'
 #elastix paths and definitions
 ELASTIX_PATH = os.path.join(FOLDER_PATH, 'elastix.exe')
@@ -71,16 +61,16 @@ el = elastix.ElastixInterface(elastix_path=ELASTIX_PATH)
 
 #global variables
 patient_list = ['p102', 'p107', 'p108', 'p109', 'p115', 'p116', 'p117', 'p119', 'p120','p125', 'p127', 'p128', 'p129', 'p133', 'p135']
-number_of_patients = 1 # for earlier stopping of the code
+number_of_patients = 15 # for earlier stopping of the code
 parameters_file_path_affine = os.path.join(CODE_PATH,'parameter_files',  'Par0001affine(new).txt')
 parameters_file_path_bspline = os.path.join(CODE_PATH,'parameter_files',  'Parameter_file_bspline_final.txt')
 #%% create a result dir and removes all old results!
 
 #%% registration and transformation
 #delete all old stuff and make new dirs
-output_dir_1 = os.path.join(FOLDER_PATH, 'results_affine')
+output_dir_1 = os.path.join(FOLDER_PATH, 'results_affine_blurred_level_2')
 output_dir_1 = pathlib.Path(output_dir_1)
-output_dir_2 = os.path.join(FOLDER_PATH, 'results_affine_bspline')
+output_dir_2 = os.path.join(FOLDER_PATH, 'results_affine_bspline_blurred_level_2')
 output_dir_2 = pathlib.Path(output_dir_2)
 if os.path.exists(output_dir_1):
     shutil.rmtree(output_dir_1)
@@ -96,6 +86,7 @@ pathlib.Path.mkdir(output_dir_masks_1, exist_ok=False) # make a dir for the mask
 pathlib.Path.mkdir(output_dir_masks_2, exist_ok=False) 
 
 #%%
+
 #loop over all patients and register their images
 for index_fixed, fixed_patient in enumerate(patient_list):
     for index_moving, moving_patient in enumerate(patient_list):
@@ -159,6 +150,10 @@ for index_fixed, fixed_patient in enumerate(patient_list):
                 
 
 #%% calculating average masks per patient
+
+#initialize the dice score and hausdorff distance
+dice_scores = []
+hausdorff_distances = []
                 
 for fixed_mask in os.listdir(output_dir_masks_2):
     # bring all moved masks values to one mask
@@ -173,7 +168,7 @@ for fixed_mask in os.listdir(output_dir_masks_2):
     #make mask binary again
     filter = sitk.MinimumMaximumImageFilter()
     filter.Execute(new_mask)
-    threshold = filter.GetMaximum()*(9/15)
+    threshold = filter.GetMaximum()*(10/15)
 
     binary_filter = sitk.BinaryThresholdImageFilter()
     binary_filter.SetLowerThreshold(0)
@@ -190,12 +185,10 @@ for fixed_mask in os.listdir(output_dir_masks_2):
     fixed_mask_array = sitk.GetArrayFromImage(fixed_mask_image)
     
     #Calculate the dice score between the generated and the fixed mask
-    dice_scores = []
     dice_score = dice(binary_mask_array,fixed_mask_array)
     dice_scores.append(dice_score)
     
     #Calculate the Hausdorff distance between the generated and fixed mask 
-    hausdorff_distances = []
     fixed_points = np.transpose(np.nonzero(fixed_mask_array))
     transformed_points = np.transpose(np.nonzero(binary_mask_array))
 
@@ -212,6 +205,7 @@ for fixed_mask in os.listdir(output_dir_masks_2):
     ax[2].imshow(fixed_mask_array[50,:,:], cmap='gray')
     ax[2].set_title('fixed mask')
     plt.show()
+    
     
 
 #%% 
