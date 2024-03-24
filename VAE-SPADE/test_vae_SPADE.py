@@ -16,13 +16,13 @@ import shutil
 random.seed(42)
 
 # directories with data and to stored training checkpoints
-DATA_DIR = Path.cwd().parent / "TrainingData"
+DATA_DIR = Path.cwd().parent.parent / "TrainingData"
 DATA_DIR_GEN = Path.cwd().parent / "Generated_images"
 if os.path.exists(DATA_DIR_GEN):
     shutil.rmtree(DATA_DIR_GEN)
 DATA_DIR_GEN.mkdir(parents=True, exist_ok=True)
 BEST_EPOCH = 299 # set this by hand by visually inspecting your best epoch in tensorboard
-CHECKPOINTS_DIR = Path.cwd() / "vae_SPADE_model_weights_no_lrsh" / f"vae_SPADE_{BEST_EPOCH}.pth"
+CHECKPOINTS_DIR = Path.cwd() / "no_noise_VAE_SPADE_model_weights" / f"vae_SPADE_{BEST_EPOCH}.pth"
 patient_list = ['p102', 'p107', 'p108', 'p109', 'p115', 'p116', 'p117', 'p119', 'p120','p125', 'p127', 'p128', 'p129', 'p133', 'p135']
 
 # hyperparameters

@@ -22,6 +22,7 @@ class ProstateMRDataset_with_gen(torch.utils.data.Dataset):
         self.gen_list = []
         self.len_paths = len(paths)
         self.len_gen_paths = len(gen_paths)
+        self.gen_frac = gen_frac
         # load images
         for path in paths:
             self.mr_image_list.append(
@@ -61,7 +62,7 @@ class ProstateMRDataset_with_gen(torch.utils.data.Dataset):
                         )
                     )  
         if gen_frac == 1.5: # 25/75 datasplit real/fake
-            for i in range(1):
+            for i in range(2):
                 for path in gen_paths:
                     self.gen_list.append(
                         sitk.GetArrayFromImage(sitk.ReadImage(path / "generated.mhd")).astype(
@@ -127,14 +128,33 @@ class ProstateMRDataset_with_gen(torch.utils.data.Dataset):
                 ),
             )
         else: 
-            return(
-
-                    self.gen_img_transform(self.gen_list[patient//2][the_slice, ...]).float()
-                ,
-                self.img_transform(
-                    (self.mask_list[patient][the_slice, ...] > 0).astype(np.int32)
-                ),
-            )
+            if self.gen_frac==0.5:
+                patient_for_gen=patient-self.len_paths
+                return(
+                    self.gen_img_transform(self.gen_list[patient_for_gen][the_slice, ...]).float()
+                    ,
+                    self.img_transform(
+                        (self.mask_list[patient][the_slice, ...] > 0).astype(np.int32)
+                    ), 
+                )
+            if self.gen_frac==1:
+                patient_for_gen=patient-self.len_paths
+                return(
+                    self.gen_img_transform(self.gen_list[patient_for_gen][the_slice, ...]).float()
+                    ,
+                    self.img_transform(
+                        (self.mask_list[patient][the_slice, ...] > 0).astype(np.int32)
+                    ), 
+                )
+            if self.gen_frac==1.5:
+                patient_for_gen=patient-self.len_paths
+                return(
+                    self.gen_img_transform(self.gen_list[patient_for_gen][the_slice, ...]).float()
+                    ,
+                    self.img_transform(
+                        (self.mask_list[patient][the_slice, ...] > 0).astype(np.int32)
+                    ), 
+                )
 
 class ProstateMRDataset(torch.utils.data.Dataset):
     """Dataset containing prostate MR images.

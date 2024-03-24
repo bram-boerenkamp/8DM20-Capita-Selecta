@@ -27,20 +27,20 @@ else:
     device = torch.device("cpu")
 #%%
 # directories with data and to store training checkpoints and logs
-DATA_DIR = Path.cwd().parent / "TrainingData"
-CHECKPOINTS_DIR = Path.cwd() / "vae_SPADE_model_weights_no_lrsh_extreme_nr_epoch"
+DATA_DIR = Path.cwd().parent.parent / "TrainingData"
+CHECKPOINTS_DIR = Path.cwd() / "no_noise_VAE_SPADE_model_weights"
 CHECKPOINTS_DIR.mkdir(parents=True, exist_ok=True)
-TENSORBOARD_LOGDIR = "vae_SPADE_runs"
+TENSORBOARD_LOGDIR = "no_noise_VAE_SPADE_runs"
 
 # training settings and hyperparameters
 NO_VALIDATION_PATIENTS = 2
 IMAGE_SIZE = [64, 64]
 BATCH_SIZE = 32
-N_EPOCHS = 800
+N_EPOCHS = 300
 DECAY_LR_AFTER = 50
 LEARNING_RATE = 1e-4
 DISPLAY_FREQ = 1
-SAVE_FREQ = 25
+SAVE_FREQ = 10
 TOLERANCE = 0.05  # for early stopping
 
 # dimension of VAE latent space
@@ -127,7 +127,7 @@ for epoch in range(N_EPOCHS):
     # evaluate validation loss
     with torch.no_grad():
         vae_SPADE_model.eval()
-        for inputs, labels in dataloader:
+        for inputs, labels in tqdm(valid_dataloader, position=0):
             outputs, mu, logvar = vae_SPADE_model(inputs.to(device), labels.to(device)) #Putting input to get the output
             loss = vae_SPADE.vae_SPADE_loss(inputs=inputs.to(device),
                             recons=outputs.to(device),
@@ -169,4 +169,8 @@ for epoch in range(N_EPOCHS):
                     weights_dict,
                     CHECKPOINTS_DIR / f"VAE_SPADE_{epoch}.pth",
                 )
-    
+#%%    
+weights_dict = {k: v.cpu() for k, v in vae_SPADE_model.state_dict().items()}
+torch.save(weights_dict, CHECKPOINTS_DIR / f"VAE_SPADE_{epoch}.pth")
+#%%
+print(partition["validation"])

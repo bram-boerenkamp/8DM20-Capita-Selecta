@@ -31,7 +31,8 @@ TENSORBOARD_LOGDIR = "segmentation_runs"
 # training settings and hyperparameters
 NO_VALIDATION_PATIENTS = 2
 IMAGE_SIZE = [64, 64]  # images are made smaller to save training time
-BATCH_SIZE = 64
+GEN_FRAC = 0.5 # possible values are 0.5, 1 and 1.5
+BATCH_SIZE = 48 # 48, 64, 96
 N_EPOCHS = 50
 LEARNING_RATE = 1e-4
 TOLERANCE = 0.05  # for early stopping
@@ -71,7 +72,7 @@ gen_partition = {
 # load training data and create DataLoader with batching and shuffling
 dataset = u_net_utils.ProstateMRDataset_with_gen(paths=partition["train"], 
                                                  gen_paths=gen_partition["train"], 
-                                                 img_size=IMAGE_SIZE)
+                                                 img_size=IMAGE_SIZE, gen_frac=GEN_FRAC)
 dataloader = DataLoader(
     dataset,
     batch_size=BATCH_SIZE,
@@ -83,7 +84,7 @@ dataloader = DataLoader(
 # load validation data
 valid_dataset = u_net_utils.ProstateMRDataset_with_gen(paths=partition["validation"], 
                                                        gen_paths=gen_partition["train"],
-                                                       img_size= IMAGE_SIZE)
+                                                       img_size= IMAGE_SIZE, gen_frac=GEN_FRAC)
 valid_dataloader = DataLoader(
     valid_dataset,
     batch_size=BATCH_SIZE,
