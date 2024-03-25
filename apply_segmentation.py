@@ -1,5 +1,4 @@
 import os
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import random
 from pathlib import Path
 from skimage.metrics import hausdorff_distance
@@ -15,7 +14,6 @@ from skimage.measure import regionprops
 
 import u_net
 import utils
-import cv2
 import SimpleITK as sitk
 
 # to ensure reproducible training/validation split
