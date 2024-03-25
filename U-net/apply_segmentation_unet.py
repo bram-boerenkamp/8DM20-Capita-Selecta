@@ -164,6 +164,18 @@ with torch.no_grad():
             sitk.WriteImage(outputs_itk, output_path)
             sitk.WriteImage(inputs_itk, output_downsample_path)
 
+            plt.subplot(131)
+            plt.imshow(inputs_list[42], cmap="gray")
+            plt.title('input image')
+            plt.subplot(132)
+            plt.imshow(outputs_list[42], cmap='grey')
+            plt.title('output mask')
+            plt.subplot(133)
+            if NEW_IMAGES == False:
+                plt.imshow(labels_list[42], cmap='grey')
+                plt.title('original mask')
+            plt.show()
+
             if NEW_IMAGES == False:
                 dice_score = dice(outputs_array, labels_array)
                 dice_scores.append(dice_score)
@@ -173,19 +185,17 @@ with torch.no_grad():
                 labels_points = np.transpose(np.nonzero(labels_array))            
 
                 hausdorff_distance = directed_hausdorff(output_points, labels_points)
-                hausdorff_distances.append(hausdorff_distance)
+                hausdorff_distances.append(hausdorff_distance[0])
                 labels_list = []
             outputs_list = []
             inputs_list = []
             patient += 1
-            plt.subplot(131)
-            plt.imshow(inputs[0], cmap="gray")
-            plt.subplot(132)
-            plt.imshow(outputs[0,0], cmap='grey')
-            plt.subplot(133)
-            if NEW_IMAGES == False:
-                plt.imshow(targets[0], cmap='grey')
-            plt.show()
 
 unet_model.cuda()
 unet_model.train()
+print("{:<10} {:<15} {:<10}".format('Patient', 'Dice score', 'Hausdorff distance'))
+for i in range(len(patients)):
+    if NEW_IMAGES == True:
+        print("{:<10} {:<15.2f} {:<10.2f}".format(new_patient_list[i], dice_scores[i], hausdorff_distances[i]))
+    if NEW_IMAGES == False:
+        print("{:<10} {:<15.2f} {:<10.2f}".format(patient_list[i], dice_scores[i], hausdorff_distances[i]))
