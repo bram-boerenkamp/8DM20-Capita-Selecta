@@ -18,16 +18,19 @@ import shutil
 random.seed(42)
 
 # directorys with data and to stored training checkpoints
+
+# Change NEW_IMAGES to True for the 5 new patients and change the DATA_DIR to the ValidateData
+# or used NEW_IMAGES = False for the 15 old ones and change DATA_DIR to TrainingData 
+NEW_IMAGES = False
 DATA_DIR = Path.cwd().parent.parent / "TrainingData"
 SEGMENTATION_DIR = Path.cwd().parent.parent / "Predicted_masks"
 if os.path.exists(SEGMENTATION_DIR):
     shutil.rmtree(SEGMENTATION_DIR)
     SEGMENTATION_DIR.mkdir(parents=True, exist_ok=True)
 DOWNSAMPLED_DIR = Path.cwd().parent.parent / "Downsampled_TrainingData"
-CREATE_DOWNSAMPLED = True
-if os.path.exists(DOWNSAMPLED_DIR) and CREATE_DOWNSAMPLED == True:
+if os.path.exists(DOWNSAMPLED_DIR):
     shutil.rmtree(DOWNSAMPLED_DIR)
-    DOWNSAMPLED_DIR.mkdir(parents=True, exist_ok=True)
+DOWNSAMPLED_DIR.mkdir(parents=True, exist_ok=True)
 
 BEST_EPOCH = 28
 CHECKPOINTS_DIR = Path.cwd() / "no_noise_no_gen_unet_model_weights" / f"u_net_{BEST_EPOCH}.pth"
@@ -37,7 +40,8 @@ new_patient_list = ['p118', 'p145', 'p146', 'p149', 'p150']
 # hyperparameters
 NO_VALIDATION_PATIENTS = 15
 IMAGE_SIZE = [64, 64]
-NEW_IMAGES = False
+
+
 
 def dice(im1, im2, empty_score=1.0):
     """
@@ -152,16 +156,13 @@ with torch.no_grad():
 
             if NEW_IMAGES == True:
                 output_path = os.path.join(SEGMENTATION_DIR, new_patient_list[patient], 'prostaat.mhd')
-                if CREATE_DOWNSAMPLED == True:
-                    output_downsample_path = os.path.join(DOWNSAMPLED_DIR, new_patient_list[patient], 'downsampled.mhd')
+                output_downsample_path = os.path.join(DOWNSAMPLED_DIR, new_patient_list[patient], 'downsampled.mhd')
             if NEW_IMAGES == False:
                 output_path = os.path.join(SEGMENTATION_DIR, patient_list[patient], 'prostaat.mhd')
-                if CREATE_DOWNSAMPLED == True:
-                    output_downsample_path = os.path.join(DOWNSAMPLED_DIR, patient_list[patient], 'downsampled.mhd')
+                output_downsample_path = os.path.join(DOWNSAMPLED_DIR, patient_list[patient], 'downsampled.mhd')
             
             sitk.WriteImage(outputs_itk, output_path)
-            if CREATE_DOWNSAMPLED == True:
-                sitk.WriteImage(inputs_itk, output_downsample_path)
+            sitk.WriteImage(inputs_itk, output_downsample_path)
 
             if NEW_IMAGES == False:
                 dice_score = dice(outputs_array, labels_array)
