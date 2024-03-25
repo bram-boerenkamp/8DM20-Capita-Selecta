@@ -17,7 +17,7 @@ random.seed(42)
 
 # directories with data and to stored training checkpoints
 DATA_DIR = Path.cwd().parent.parent / "TrainingData"
-DATA_DIR_GEN = Path.cwd().parent / "Generated_images"
+DATA_DIR_GEN = Path.cwd().parent.parent / "Generated_images"
 if os.path.exists(DATA_DIR_GEN):
     shutil.rmtree(DATA_DIR_GEN)
 DATA_DIR_GEN.mkdir(parents=True, exist_ok=True)
@@ -36,7 +36,6 @@ patients = [
     for path in DATA_DIR.glob("*")
     if not any(part.startswith(".") for part in path.parts)
 ]
-random.shuffle(patients)
 
 # split in training/validation after shuffling
 partition = {
@@ -51,8 +50,6 @@ vae_SPADE_model = vae_SPADE.VAE_SPADE()
 vae_SPADE_model.load_state_dict(torch.load(CHECKPOINTS_DIR))
 vae_SPADE_model.eval()
 vae_SPADE_model.cpu()
-
-
 
 patient = 0
 labels_list = []
