@@ -33,13 +33,13 @@ CHECKPOINTS_DIR.mkdir(parents=True, exist_ok=True)
 TENSORBOARD_LOGDIR = "no_noise_VAE_SPADE_runs"
 
 # training settings and hyperparameters
-NO_VALIDATION_PATIENTS = 2
+NO_VALIDATION_PATIENTS = 0
 IMAGE_SIZE = [64, 64]
 BATCH_SIZE = 32
 N_EPOCHS = 300
 DECAY_LR_AFTER = 50
 LEARNING_RATE = 1e-4
-DISPLAY_FREQ = 1
+DISPLAY_FREQ = 10
 SAVE_FREQ = 10
 TOLERANCE = 0.05  # for early stopping
 
@@ -66,10 +66,16 @@ patients = [
 random.shuffle(patients)
 
 # split in training/validation after shuffling
-partition = {
-    "train": patients[:-NO_VALIDATION_PATIENTS],
-    "validation": patients[-NO_VALIDATION_PATIENTS:],
-}
+if NO_VALIDATION_PATIENTS != 0:
+    partition = {
+        "train": patients[:-NO_VALIDATION_PATIENTS],
+        "validation": patients[-NO_VALIDATION_PATIENTS:],
+    }
+else:
+    partition = {
+        "train": patients[:],
+        "validation": patients[:],
+    }
 
 # load training data and create DataLoader with batching and shuffling
 dataset = utils.ProstateMRDataset(partition["train"], IMAGE_SIZE)
@@ -160,10 +166,9 @@ for epoch in range(N_EPOCHS):
 
     # if validation loss is improving, save model checkpoint
     # only start saving after 10 epochs
-    if (current_valid_loss / len(valid_dataloader)) < minimum_valid_loss + TOLERANCE:
-        minimum_valid_loss = current_valid_loss / len(valid_dataloader)
-        weights_dict = {k: v.cpu() for k, v in vae_SPADE_model.state_dict().items()}
-        if epoch > 200:
+
+        if epoch > 50:
+            weights_dict = {k: v.cpu() for k, v in vae_SPADE_model.state_dict().items()}
             if (epoch + 1) % SAVE_FREQ == 0:
                 torch.save(
                     weights_dict,
