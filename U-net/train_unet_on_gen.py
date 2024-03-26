@@ -23,10 +23,10 @@ else:
 
 # directorys with data and to store training checkpoints and logs
 DATA_DIR = Path.cwd().parent.parent / "TrainingData"
-DATA_DIR_GEN = Path.cwd().parent.parent / "Generated_images_OG"
-CHECKPOINTS_DIR = Path.cwd() / "segmentation_model_weights"
+DATA_DIR_GEN = Path.cwd().parent.parent / "Generated_images_no_noise"
+CHECKPOINTS_DIR = Path.cwd() / "no_noise_gen_unet_model_weights"
 CHECKPOINTS_DIR.mkdir(parents=True, exist_ok=True)
-TENSORBOARD_LOGDIR = "segmentation_runs"
+TENSORBOARD_LOGDIR = "no_noise_gen_unet_runs"
 
 # training settings and hyperparameters
 NO_VALIDATION_PATIENTS = 2
@@ -35,7 +35,7 @@ BATCH_SIZE = 64
 N_EPOCHS = 200
 LEARNING_RATE = 1e-4
 TOLERANCE = 0.05  # for early stopping
-SAVE_FREQ = 5
+SAVE_FREQ = 1
 
 # find patient folders in training directory
 # excluding hidden folders (start with .)

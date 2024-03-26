@@ -22,7 +22,7 @@ random.seed(42)
 # Change NEW_IMAGES to True for the 5 new patients and change the DATA_DIR to the ValidateData
 # or used NEW_IMAGES = False for the 15 old ones and change DATA_DIR to TrainingData 
 NEW_IMAGES = False
-DATA_DIR = Path.cwd().parent.parent / "TrainingData"
+DATA_DIR = Path.cwd().parent.parent / "ValidateData"
 SEGMENTATION_DIR = Path.cwd().parent.parent / "Predicted_masks"
 if os.path.exists(SEGMENTATION_DIR):
     shutil.rmtree(SEGMENTATION_DIR)
@@ -32,8 +32,8 @@ if os.path.exists(DOWNSAMPLED_DIR):
     shutil.rmtree(DOWNSAMPLED_DIR)
 DOWNSAMPLED_DIR.mkdir(parents=True, exist_ok=True)
 
-BEST_EPOCH = 28
-CHECKPOINTS_DIR = Path.cwd() / "no_noise_no_gen_unet_model_weights" / f"u_net_{BEST_EPOCH}.pth"
+BEST_EPOCH = 34
+CHECKPOINTS_DIR = Path.cwd() / "no_noise_gen_unet_model_weights" / f"u_net_{BEST_EPOCH}.pth"
 patient_list = ['p102', 'p107', 'p108', 'p109', 'p115', 'p116', 'p117', 'p119', 'p120','p125', 'p127', 'p128', 'p129', 'p133', 'p135']
 new_patient_list = ['p118', 'p145', 'p146', 'p149', 'p150']
 
